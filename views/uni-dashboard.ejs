@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h2><%= university.name %> 🏫</h2>
+      <p><%= university.city %>, <%= university.state %></p>
+    </div>
+    <a href="/university/logout" class="btn btn-outline">Logout</a>
+  </div>
+
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <h3><%= students.length %></h3>
+      <p>Registered Students</p>
+    </div>
+    <div class="stat-card">
+      <h3><%= notes.length %></h3>
+      <p>Notes Shared</p>
+    </div>
+    <div class="stat-card">
+      <h3><%= notes.reduce((a, n) => a + n.views, 0) %></h3>
+      <p>Total Views</p>
+    </div>
+  </div>
+
+  <div class="section-title"><h3>Notes from Your University</h3></div>
+
+  <% if (notes.length === 0) { %>
+    <div class="empty-state"><p>No notes uploaded yet by your students.</p></div>
+  <% } else { %>
+    <div class="notes-grid">
+      <% notes.forEach(note => { %>
+        <div class="note-card">
+          <div class="note-type <%= note.type.toLowerCase() %>"><%= note.type %></div>
+          <h4><%= note.title %></h4>
+          <p><%= note.subject %> • Sem <%= note.semester %></p>
+          <p>👤 <%= note.uploader.name %></p>
+          <p class="note-views">👁 <%= note.views %> views</p>
+          <a href="/notes/view/<%= note._id %>" class="btn btn-sm btn-primary">View</a>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div class="section-title"><h3>Registered Students</h3></div>
+  <div class="students-list">
+    <% if (students.length === 0) { %>
+      <p>No students registered yet.</p>
+    <% } else { %>
+      <table class="students-table">
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          <% students.forEach(s => { %>
+            <tr>
+              <td><%= s.name %></td>
+              <td><%= s.email %></td>
+              <td><%= s.createdAt.toDateString() %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

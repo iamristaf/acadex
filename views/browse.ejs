@@ -1,0 +1,61 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="browse-page">
+  <h2>Browse Notes</h2>
+
+  <form class="filter-form" method="GET" action="/notes/browse">
+    <select name="university">
+      <option value="">All Universities</option>
+      <% universities.forEach(uni => { %>
+        <option value="<%= uni._id %>" <%= query.university == uni._id.toString() ? 'selected' : '' %>>
+          <%= uni.name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <input type="text" name="subject" placeholder="Search subject..." value="<%= query.subject || '' %>" />
+
+    <select name="semester">
+      <option value="">All Semesters</option>
+      <% for(let i = 1; i <= 8; i++) { %>
+        <option value="<%= i %>" <%= query.semester == i ? 'selected' : '' %>>Semester <%= i %></option>
+      <% } %>
+    </select>
+
+    <select name="type">
+      <option value="">All Types</option>
+      <option value="Notes" <%= query.type === 'Notes' ? 'selected' : '' %>>Notes</option>
+      <option value="PYQ" <%= query.type === 'PYQ' ? 'selected' : '' %>>PYQ</option>
+      <option value="Book" <%= query.type === 'Book' ? 'selected' : '' %>>Book</option>
+      <option value="Other" <%= query.type === 'Other' ? 'selected' : '' %>>Other</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="/notes/browse" class="btn btn-outline">Clear</a>
+  </form>
+
+  <p class="results-count"><%= notes.length %> note(s) found</p>
+
+  <% if (notes.length === 0) { %>
+    <div class="empty-state">
+      <p>No notes found. Try changing the filters.</p>
+    </div>
+  <% } else { %>
+    <div class="notes-grid">
+      <% notes.forEach(note => { %>
+        <div class="note-card">
+          <div class="note-type <%= note.type.toLowerCase() %>"><%= note.type %></div>
+          <h4><%= note.title %></h4>
+          <p><%= note.subject %> • Sem <%= note.semester %></p>
+          <p class="note-university">🏫 <%= note.university ? note.university.name : 'Independent' %></p>
+          <p class="note-uploader">👤 <%= note.uploader.name %></p>
+          <p class="note-views">👁 <%= note.views %> views</p>
+          <a href="/notes/view/<%= note._id %>" class="btn btn-sm btn-primary">View Note</a>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

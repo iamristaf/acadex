@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+  <div class="auth-card wide-card">
+    <h2>Upload a Note</h2>
+    <p class="auth-sub">Share your notes with students across universities.</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <form action="/notes/upload" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Note Title</label>
+        <input type="text" name="title" placeholder="e.g. Data Structures Unit 3 Notes" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" name="subject" placeholder="e.g. Data Structures" required />
+        </div>
+        <div class="form-group">
+          <label>Semester</label>
+          <select name="semester" required>
+            <option value="">Select</option>
+            <% for(let i = 1; i <= 8; i++) { %>
+              <option value="<%= i %>">Semester <%= i %></option>
+            <% } %>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select name="type" required>
+          <option value="">Select Type</option>
+          <option value="Notes">Notes</option>
+          <option value="PYQ">Previous Year Question (PYQ)</option>
+          <option value="Book">Book</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Upload PDF File</label>
+        <input type="file" name="pdf" accept=".pdf" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Upload Note</button>
+    </form>
+
+    <p class="auth-footer"><a href="/dashboard">← Back to Dashboard</a></p>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

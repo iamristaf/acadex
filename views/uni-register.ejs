@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Register University</h2>
+    <p class="auth-sub">Register your university to let students share notes.</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/university/register" method="POST">
+      <div class="form-group">
+        <label>University Name</label>
+        <input type="text" name="name" placeholder="e.g. Delhi University" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" name="city" placeholder="e.g. New Delhi" required />
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" name="state" placeholder="e.g. Delhi" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Official Email</label>
+        <input type="email" name="email" placeholder="admin@university.edu" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Register University</button>
+    </form>
+
+    <p class="auth-footer">Already registered? <a href="/university/login">Login here</a></p>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

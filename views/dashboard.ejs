@@ -1,0 +1,58 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h2>Welcome, <%= user.name %> 👋</h2>
+      <p><%= user.isIndependent ? 'Independent Student' : (user.university ? user.university.name : 'No University') %></p>
+    </div>
+    <a href="/notes/upload" class="btn btn-primary">+ Upload Note</a>
+  </div>
+
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <h3><%= myNotes.length %></h3>
+      <p>Notes Uploaded</p>
+    </div>
+    <div class="stat-card">
+      <h3><%= myNotes.reduce((a, n) => a + n.views, 0) %></h3>
+      <p>Total Views</p>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <h3>My Uploaded Notes</h3>
+    <a href="/notes/browse">Browse All Notes →</a>
+  </div>
+
+  <% if (myNotes.length === 0) { %>
+    <div class="empty-state">
+      <p>You haven't uploaded any notes yet.</p>
+      <a href="/notes/upload" class="btn btn-primary">Upload your first note</a>
+    </div>
+  <% } else { %>
+    <div class="notes-grid">
+      <% myNotes.forEach(note => { %>
+        <div class="note-card">
+          <div class="note-type <%= note.type.toLowerCase() %>"><%= note.type %></div>
+          <h4><%= note.title %></h4>
+          <p><%= note.subject %> • Sem <%= note.semester %></p>
+          <p class="note-views">👁 <%= note.views %> views</p>
+          <div class="note-actions">
+            <a href="/notes/view/<%= note._id %>" class="btn btn-sm btn-outline">View</a>
+            <form action="/notes/delete/<%= note._id %>" method="POST" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this note?')">Delete</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div class="logout-section">
+    <a href="/logout" class="btn btn-outline">Logout</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

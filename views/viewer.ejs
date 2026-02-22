@@ -1,0 +1,95 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="viewer-page">
+  <div class="viewer-info">
+    <div>
+      <h2><%= note.title %></h2>
+      <p><%= note.subject %> • Semester <%= note.semester %> • <%= note.type %></p>
+      <p>🏫 <%= note.university ? note.university.name : 'Independent' %> &nbsp;|&nbsp; 👤 <%= note.uploader.name %> &nbsp;|&nbsp; 👁 <%= note.views %> views</p>
+    </div>
+    <a href="/notes/browse" class="btn btn-outline">← Back to Browse</a>
+  </div>
+
+  <div class="pdf-toolbar">
+    <button class="btn btn-sm btn-outline" id="prev">◀ Prev</button>
+    <span id="page-info">Page <span id="current-page">1</span> of <span id="total-pages">-</span></span>
+    <button class="btn btn-sm btn-outline" id="next">Next ▶</button>
+    <button class="btn btn-sm btn-outline" id="zoom-in">🔍+</button>
+    <button class="btn btn-sm btn-outline" id="zoom-out">🔍-</button>
+  </div>
+
+  <div class="pdf-viewer-container">
+    <div id="pdf-loading-msg">⏳ Loading PDF, please wait...</div>
+    <canvas id="pdf-canvas" style="display:none; max-width:100%;"></canvas>
+    <div id="pdf-error-msg" style="display:none; text-align:center; padding:2rem;">
+      <p style="color:#dc2626; margin-bottom:1rem;">❌ Could not load PDF preview.</p>
+      <a href="/notes/pdf/<%= note._id %>" target="_blank" class="btn btn-primary">Open PDF directly →</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // Use our proxy route instead of Cloudinary URL directly
+  const url = '/notes/pdf/<%= note._id %>';
+  let pdfDoc = null;
+  let currentPage = 1;
+  let scale = 1.5;
+
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  const loadingMsg = document.getElementById('pdf-loading-msg');
+  const errorMsg = document.getElementById('pdf-error-msg');
+
+  function renderPage(num) {
+    pdfDoc.getPage(num).then(page => {
+      const viewport = page.getViewport({ scale });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        loadingMsg.style.display = 'none';
+        canvas.style.display = 'block';
+        document.getElementById('current-page').textContent = num;
+      });
+    });
+  }
+
+  pdfjsLib.getDocument(url).promise.then(pdf => {
+    pdfDoc = pdf;
+    document.getElementById('total-pages').textContent = pdf.numPages;
+    renderPage(currentPage);
+  }).catch(err => {
+    console.error('PDF load error:', err);
+    loadingMsg.style.display = 'none';
+    errorMsg.style.display = 'block';
+  });
+
+  document.getElementById('prev').addEventListener('click', () => {
+    if (currentPage <= 1) return;
+    currentPage--;
+    renderPage(currentPage);
+  });
+
+  document.getElementById('next').addEventListener('click', () => {
+    if (currentPage >= pdfDoc.numPages) return;
+    currentPage++;
+    renderPage(currentPage);
+  });
+
+  document.getElementById('zoom-in').addEventListener('click', () => {
+    scale += 0.25;
+    renderPage(currentPage);
+  });
+
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    if (scale <= 0.5) return;
+    scale -= 0.25;
+    renderPage(currentPage);
+  });
+</script>
+
+<%- include('partials/footer') %>
