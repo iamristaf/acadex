@@ -1,0 +1,116 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="profile-container">
+  <div class="profile-card">
+
+    <!-- Avatar -->
+    <div class="profile-avatar">
+      <% if (profile.profilePhoto) { %>
+        <img src="<%= profile.profilePhoto %>" alt="<%= profile.name %>"
+             style="width:90px; height:90px; border-radius:50%;
+                    object-fit:cover; border:3px solid #4f46e5;">
+      <% } else { %>
+        <span style="font-size:64px; line-height:1;">
+          <%= profile.role === 'teacher' ? '👨‍🏫' : '🎓' %>
+        </span>
+      <% } %>
+    </div>
+
+    <!-- Info -->
+    <div class="profile-info">
+      <h1 style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+
+  <span><%= profile.name %></span>
+  <% if (profile.role === 'teacher' && profile.isVerified) { %>
+    <%- include('partials/verified-badge', { role: 'teacher' }) %>
+  <% } else if (profile.isDualVerified) { %>
+    <%- include('partials/verified-badge', { role: 'dual' }) %>
+  <% } else if (profile.isPurpleVerified) { %>
+    <%- include('partials/verified-badge', { role: 'purple' }) %>
+  <% } else if (profile.isVerified && !profile.isIndependent) { %>
+    <%- include('partials/verified-badge', { role: 'student' }) %>
+  <% } %>
+</h1>
+      </h1>
+      <p class="profile-role">
+        <%= profile.role === 'teacher' ? '👨‍🏫 Teacher' : '🎓 Student' %>
+      </p>
+      <p>🏫 <%= profile.university ? profile.university.name : 'Independent' %></p>
+      <% if (profile.role === 'teacher' && profile.department) { %>
+        <p>📚 Department: <%= profile.department %></p>
+      <% } %>
+      <p>📅 Joined <%= profile.createdAt.toDateString() %></p>
+    </div>
+
+    <!-- Rating box -->
+    <div class="profile-rating-box">
+      <div class="profile-rating-avg">
+        <%= profile.ratingCount > 0
+          ? (profile.totalRating / profile.ratingCount).toFixed(1)
+          : '—' %>
+      </div>
+      <div class="stars-display">
+        <% const pavg = profile.ratingCount > 0 ? profile.totalRating / profile.ratingCount : 0 %>
+        <% for(let i = 1; i <= 5; i++) { %>
+          <span class="<%= i <= Math.round(pavg) ? 'star filled' : 'star' %>">★</span>
+        <% } %>
+      </div>
+      <p class="rating-count"><%= profile.ratingCount %> ratings</p>
+
+      <!-- Rate this profile -->
+      <% if (locals.user && user._id.toString() !== profile._id.toString()) { %>
+        <div class="rate-profile-form">
+          <p style="font-size:13px; font-weight:600; margin-bottom:8px;">Rate this profile:</p>
+          <form action="/rate-profile/<%= profile._id %>" method="POST">
+            <div class="star-buttons">
+              <% for(let i = 1; i <= 5; i++) { %>
+                <button type="submit" name="stars" value="<%= i %>"
+                        class="star-btn">★</button>
+              <% } %>
+            </div>
+          </form>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+
+  <!-- Notes by this user -->
+  <div class="profile-notes">
+    <h2>Notes by <%= profile.name %> (<%= notes.length %>)</h2>
+    <% if (notes.length === 0) { %>
+      <div class="empty-state">
+        <p>No notes uploaded yet.</p>
+      </div>
+    <% } else { %>
+      <div class="notes-grid">
+        <% notes.forEach(note => { %>
+          <div class="note-card">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <span class="badge badge-<%= note.type.toLowerCase() %>"><%= note.type %></span>
+              <% if (note.isRestricted) { %>
+                <span class="badge-restricted">🔒 University Only</span>
+              <% } %>
+            </div>
+            <h3 class="note-title"><%= note.title %></h3>
+            <p class="note-meta"><%= note.subject %> • Sem <%= note.semester %></p>
+            <div class="note-rating">
+              <% const nr = note.ratingCount > 0
+                  ? (note.totalRating / note.ratingCount).toFixed(1) : 0 %>
+              <% for(let i = 1; i <= 5; i++) { %>
+                <span class="<%= i <= Math.round(nr) ? 'star filled' : 'star' %>">★</span>
+              <% } %>
+              <span class="rating-text"><%= nr %> (<%= note.ratingCount %>)</span>
+            </div>
+            <p class="note-views">👁 <%= note.views %> views</p>
+            <a href="/notes/view/<%= note._id %>" class="btn btn-primary btn-sm"
+               style="color:#fff !important;">View</a>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

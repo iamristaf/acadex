@@ -2,47 +2,137 @@
 <%- include('partials/navbar') %>
 
 <div class="dashboard">
+
+  <!-- Header -->
   <div class="dashboard-header">
-    <div>
-      <h2>Welcome, <%= user.name %> 👋</h2>
-      <p><%= user.isIndependent ? 'Independent Student' : (user.university ? user.university.name : 'No University') %></p>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <% if (user.profilePhoto) { %>
+        <img src="<%= user.profilePhoto %>" alt="Profile"
+             style="width:64px; height:64px; border-radius:50%;
+                    object-fit:cover; border:3px solid #4f46e5; flex-shrink:0;">
+      <% } else { %>
+        <div style="width:64px; height:64px; border-radius:50%; background:#ede9fe;
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:28px; border:3px solid #4f46e5; flex-shrink:0;">
+          <%= user.role === 'teacher' ? '👨‍🏫' : '🎓' %>
+        </div>
+      <% } %>
+      <div>
+        <h2 style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          Welcome, <%= user.name %>
+          <% if (user.role === 'teacher' && user.isVerified) { %>
+  <%- include('partials/verified-badge', { role: 'teacher' }) %>
+<% } else if (user.isDualVerified) { %>
+  <%- include('partials/verified-badge', { role: 'dual' }) %>
+<% } else if (user.isPurpleVerified) { %>
+  <%- include('partials/verified-badge', { role: 'purple' }) %>
+<% } else if (user.isVerified && !user.isIndependent) { %>
+  <%- include('partials/verified-badge', { role: 'student' }) %>
+<% } %>
+        </h2>
+        <p>
+          <%= user.role === 'teacher' ? 'Teacher' : 'Student' %> •
+          <%= user.university ? user.university.name : 'Independent' %>
+          <% if (user.role === 'teacher' && user.department) { %>
+            • <%= user.department %>
+          <% } %>
+        </p>
+      </div>
     </div>
-    <a href="/notes/upload" class="btn btn-primary">+ Upload Note</a>
+    <div style="display:flex; gap:10px; flex-shrink:0;">
+      <a href="/edit-profile" class="btn btn-outline btn-sm">✏️ Edit Profile</a>
+      <a href="/logout" class="btn btn-outline btn-sm"
+         style="color:#ef4444; border-color:#ef4444;">Logout</a>
+    </div>
   </div>
 
-  <div class="dashboard-stats">
+  <!-- Notifications -->
+  <% if (notifications && notifications.length > 0) { %>
+    <div class="notifications-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3>🔔 Notifications (<%= notifications.length %>)</h3>
+        <form action="/notifications/delete-all" method="POST"
+              onsubmit="return confirm('Clear all notifications?')">
+          <button class="btn btn-sm btn-outline"
+                  style="color:#dc2626; border-color:#dc2626;">Clear All</button>
+        </form>
+      </div>
+      <% notifications.forEach(n => { %>
+        <div class="notification-item <%= n.isRead ? 'read' : 'unread' %>">
+          <div class="notif-icon">🗑️</div>
+          <div class="notif-body">
+            <p class="notif-message"><%= n.message %></p>
+            <p class="notif-reason"><strong>Reason:</strong> <%= n.reason %></p>
+            <p class="notif-time"><%= n.createdAt.toDateString() %></p>
+          </div>
+          <form action="/notifications/delete/<%= n._id %>" method="POST"
+                style="margin-left:auto; align-self:flex-start;">
+            <button class="notif-delete-btn" title="Dismiss">✕</button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <!-- Stats -->
+  <div class="stats-row">
     <div class="stat-card">
-      <h3><%= myNotes.length %></h3>
-      <p>Notes Uploaded</p>
+      <div class="stat-num"><%= myNotes.length %></div>
+      <div class="stat-label">Notes Uploaded</div>
     </div>
     <div class="stat-card">
-      <h3><%= myNotes.reduce((a, n) => a + n.views, 0) %></h3>
-      <p>Total Views</p>
+      <div class="stat-num"><%= myNotes.reduce((s, n) => s + n.views, 0) %></div>
+      <div class="stat-label">Total Views</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><%= myNotes.reduce((s, n) => s + n.ratingCount, 0) %></div>
+      <div class="stat-label">Total Ratings</div>
     </div>
   </div>
 
+  <!-- My Notes -->
   <div class="section-title">
-    <h3>My Uploaded Notes</h3>
-    <a href="/notes/browse">Browse All Notes →</a>
+    <h3>📄 My Notes (<%= myNotes.length %>)</h3>
+    <a href="/notes/upload" class="btn btn-primary btn-sm"
+       style="color:#fff !important;">+ Upload Note</a>
   </div>
 
   <% if (myNotes.length === 0) { %>
     <div class="empty-state">
       <p>You haven't uploaded any notes yet.</p>
-      <a href="/notes/upload" class="btn btn-primary">Upload your first note</a>
+      <a href="/notes/upload" class="btn btn-primary"
+         style="color:#fff !important;">Upload Your First Note</a>
     </div>
   <% } else { %>
     <div class="notes-grid">
       <% myNotes.forEach(note => { %>
         <div class="note-card">
-          <div class="note-type <%= note.type.toLowerCase() %>"><%= note.type %></div>
-          <h4><%= note.title %></h4>
-          <p><%= note.subject %> • Sem <%= note.semester %></p>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <span class="badge badge-<%= note.type.toLowerCase() %>"><%= note.type %></span>
+            <% if (note.isRestricted) { %>
+              <span class="badge-restricted">🔒 University Only</span>
+            <% } %>
+          </div>
+          <h4 class="note-title"><%= note.title %></h4>
+          <p class="note-meta"><%= note.subject %> • Sem <%= note.semester %></p>
+          <p class="note-uni">🏫 <%= note.university ? note.university.name : 'Independent' %></p>
+
+          <div class="note-rating">
+            <% const avg = note.ratingCount > 0 ? (note.totalRating / note.ratingCount).toFixed(1) : 0 %>
+            <% for(let i = 1; i <= 5; i++) { %>
+              <span class="<%= i <= Math.round(avg) ? 'star filled' : 'star' %>">★</span>
+            <% } %>
+            <span class="rating-text"><%= avg %> (<%= note.ratingCount %> ratings)</span>
+          </div>
+
           <p class="note-views">👁 <%= note.views %> views</p>
+
           <div class="note-actions">
-            <a href="/notes/view/<%= note._id %>" class="btn btn-sm btn-outline">View</a>
-            <form action="/notes/delete/<%= note._id %>" method="POST" style="display:inline">
-              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this note?')">Delete</button>
+            <a href="/notes/view/<%= note._id %>" class="btn btn-primary btn-sm"
+               style="color:#fff !important;">View</a>
+            <form action="/notes/delete/<%= note._id %>" method="POST" style="display:inline"
+                  onsubmit="return confirm('Delete this note?')">
+              <button class="btn btn-danger btn-sm">Delete</button>
             </form>
           </div>
         </div>
@@ -50,9 +140,11 @@
     </div>
   <% } %>
 
+  <!-- Bottom links -->
   <div class="logout-section">
-    <a href="/logout" class="btn btn-outline">Logout</a>
+    <a href="/profile/<%= user._id %>" class="btn btn-outline">View My Public Profile</a>
   </div>
+
 </div>
 
 <%- include('partials/footer') %>

@@ -47,6 +47,34 @@
         <label>Upload PDF File</label>
         <input type="file" name="pdf" accept=".pdf" required />
       </div>
+      <!-- Visibility toggle — only for verified teachers -->
+<% if (user.role === 'teacher' && user.isVerified) { %>
+  <div class="form-group">
+    <label>Note Visibility</label>
+    <div class="visibility-toggle">
+      <label class="vis-option">
+        <input type="radio" name="isRestricted" value="false" checked>
+        <div class="vis-card">
+          <span style="font-size:22px;">🌐</span>
+          <div>
+            <p class="vis-title">Public</p>
+            <p class="vis-desc">Anyone can view this note</p>
+          </div>
+        </div>
+      </label>
+      <label class="vis-option">
+        <input type="radio" name="isRestricted" value="true">
+        <div class="vis-card">
+          <span style="font-size:22px;">🔒</span>
+          <div>
+            <p class="vis-title">University Only</p>
+            <p class="vis-desc">Only verified students of your university</p>
+          </div>
+        </div>
+      </label>
+    </div>
+  </div>
+<% } %>
       <button type="submit" class="btn btn-primary btn-full">Upload Note</button>
     </form>
 

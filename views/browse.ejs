@@ -1,34 +1,36 @@
 <%- include('partials/header') %>
 <%- include('partials/navbar') %>
 
-<div class="browse-page">
-  <h2>Browse Notes</h2>
+<div class="browse-container">
 
-  <form class="filter-form" method="GET" action="/notes/browse">
+  <!-- Filter Bar -->
+  <form action="/notes/browse" method="GET" class="filter-bar">
     <select name="university">
       <option value="">All Universities</option>
-      <% universities.forEach(uni => { %>
-        <option value="<%= uni._id %>" <%= query.university == uni._id.toString() ? 'selected' : '' %>>
-          <%= uni.name %>
+      <% universities.forEach(u => { %>
+        <option value="<%= u._id %>" <%= query.university === u._id.toString() ? 'selected' : '' %>>
+          <%= u.name %>
         </option>
       <% }) %>
     </select>
 
-    <input type="text" name="subject" placeholder="Search subject..." value="<%= query.subject || '' %>" />
+    <input type="text" name="subject" placeholder="Search subject..."
+           value="<%= query.subject || '' %>">
 
     <select name="semester">
       <option value="">All Semesters</option>
       <% for(let i = 1; i <= 8; i++) { %>
-        <option value="<%= i %>" <%= query.semester == i ? 'selected' : '' %>>Semester <%= i %></option>
+        <option value="<%= i %>" <%= query.semester == i ? 'selected' : '' %>>
+          Semester <%= i %>
+        </option>
       <% } %>
     </select>
 
     <select name="type">
       <option value="">All Types</option>
-      <option value="Notes" <%= query.type === 'Notes' ? 'selected' : '' %>>Notes</option>
-      <option value="PYQ" <%= query.type === 'PYQ' ? 'selected' : '' %>>PYQ</option>
-      <option value="Book" <%= query.type === 'Book' ? 'selected' : '' %>>Book</option>
-      <option value="Other" <%= query.type === 'Other' ? 'selected' : '' %>>Other</option>
+      <% ['Notes','PYQ','Book','Other'].forEach(t => { %>
+        <option value="<%= t %>" <%= query.type === t ? 'selected' : '' %>><%= t %></option>
+      <% }) %>
     </select>
 
     <button type="submit" class="btn btn-primary">Filter</button>
@@ -39,23 +41,150 @@
 
   <% if (notes.length === 0) { %>
     <div class="empty-state">
-      <p>No notes found. Try changing the filters.</p>
+      <p>No notes found. Try changing your filters.</p>
     </div>
   <% } else { %>
     <div class="notes-grid">
       <% notes.forEach(note => { %>
         <div class="note-card">
-          <div class="note-type <%= note.type.toLowerCase() %>"><%= note.type %></div>
-          <h4><%= note.title %></h4>
-          <p><%= note.subject %> • Sem <%= note.semester %></p>
-          <p class="note-university">🏫 <%= note.university ? note.university.name : 'Independent' %></p>
-          <p class="note-uploader">👤 <%= note.uploader.name %></p>
-          <p class="note-views">👁 <%= note.views %> views</p>
-          <a href="/notes/view/<%= note._id %>" class="btn btn-sm btn-primary">View Note</a>
+
+          <!-- Badges row -->
+          <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+            <span class="badge badge-<%= note.type.toLowerCase() %>"><%= note.type %></span>
+
+          <% if (note.uploader) { %>
+  <% if (note.uploader.role === 'teacher' && note.uploader.isVerified) { %>
+    <%- include('partials/verified-badge', { role: 'teacher' }) %>
+  <% } else if (note.uploader.isDualVerified) { %>
+    <%- include('partials/verified-badge', { role: 'dual' }) %>
+  <% } else if (note.uploader.isPurpleVerified) { %>
+    <%- include('partials/verified-badge', { role: 'purple' }) %>
+  <% } else if (note.uploader.isVerified && !note.uploader.isIndependent) { %>
+    <%- include('partials/verified-badge', { role: 'student' }) %>
+  <% } %>
+<% } %>
+
+            <% if (note.isRestricted) { %>
+              <span class="badge-restricted">🔒 University Only</span>
+            <% } %>
+          </div>
+
+          <h3 class="note-title"><%= note.title %></h3>
+          <p class="note-meta"><%= note.subject %> • Sem <%= note.semester %></p>
+          <p class="note-uni">🏫 <%= note.university ? note.university.name : 'Independent' %></p>
+
+          <!-- Star rating -->
+          <div class="note-rating">
+            <% const avg = note.ratingCount > 0 ? (note.totalRating / note.ratingCount).toFixed(1) : 0 %>
+            <% for(let i = 1; i <= 5; i++) { %>
+              <span class="<%= i <= Math.round(avg) ? 'star filled' : 'star' %>">★</span>
+            <% } %>
+            <span class="rating-text"><%= avg %> (<%= note.ratingCount %> ratings)</span>
+          </div>
+
+          <div class="note-footer">
+            <span>
+              <% if (note.uploader) { %>
+                <a href="/profile/<%= note.uploader._id %>"><%= note.uploader.name %></a>
+              <% } else { %>
+                Unknown
+              <% } %>
+            </span>
+            <span>👁 <%= note.views %> views</span>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="note-actions">
+            <%
+              let isLocked = false;
+              if (note.isRestricted) {
+                if (!locals.currentUser && !locals.currentUniversity) {
+                  isLocked = true;
+                } else if (locals.currentUser) {
+                  const sameUni = currentUser.university &&
+                                  note.university &&
+                                  currentUser.university._id.toString() === note.university._id.toString();
+                  if (!sameUni || !currentUser.isVerified) isLocked = true;
+                } else if (locals.currentUniversity) {
+                  const sameUni = note.university &&
+                                  currentUniversity._id.toString() === note.university._id.toString();
+                  if (!sameUni) isLocked = true;
+                }
+              }
+            %>
+
+            <% if (isLocked) { %>
+              <div class="locked-note">
+                <span class="lock-icon">🔒</span>
+                <span class="lock-msg">
+                  Restricted to verified students of
+                  <%= note.university ? note.university.name : 'this university' %>
+                </span>
+              </div>
+            <% } else { %>
+              <a href="/notes/view/<%= note._id %>" class="btn btn-primary btn-sm"
+                 style="color:#fff !important;">View Note</a>
+            <% } %>
+
+            <!-- Teacher remove button -->
+            <% if (locals.currentUser &&
+                    currentUser.role === 'teacher' &&
+                    currentUser.isVerified &&
+                    currentUser.university &&
+                    note.university &&
+                    currentUser.university._id.toString() === note.university._id.toString()) { %>
+              <button class="btn btn-danger btn-sm"
+                      onclick="showDeleteModal('<%= note._id %>', '<%= note.title.replace(/'/g, "\\'") %>')">
+                Remove
+              </button>
+            <% } %>
+          </div>
+
         </div>
       <% }) %>
     </div>
   <% } %>
+
 </div>
+
+<!-- Delete Modal -->
+<div id="delete-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>🗑️ Remove Note</h3>
+    <p id="modal-note-name" style="color:#64748b; margin:8px 0 16px; font-size:14px;"></p>
+    <div class="form-group">
+      <label>Reason for removal <span style="color:#dc2626">*</span></label>
+      <input type="text" id="delete-reason" required
+             placeholder="e.g. Incorrect content, spam, copyright issue...">
+    </div>
+    <form id="delete-form" method="POST">
+      <input type="hidden" name="reason" id="delete-reason-hidden">
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button type="submit" class="btn btn-danger btn-full"
+                onclick="document.getElementById('delete-reason-hidden').value = document.getElementById('delete-reason').value">
+          Confirm Remove
+        </button>
+        <button type="button" class="btn btn-outline btn-full" onclick="closeModal()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showDeleteModal(noteId, noteTitle) {
+  document.getElementById('modal-note-name').textContent = '"' + noteTitle + '"';
+  document.getElementById('delete-form').action = '/notes/moderate-delete/' + noteId;
+  document.getElementById('delete-reason').value = '';
+  document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+}
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
 
 <%- include('partials/footer') %>

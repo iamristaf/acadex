@@ -3,28 +3,64 @@
 
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Student Login</h2>
-    <p class="auth-sub">Welcome back! Login to your account.</p>
+    <h2>Welcome Back</h2>
+    <p class="auth-sub">Login to your account</p>
 
     <% if (error) { %>
       <div class="alert alert-error"><%= error %></div>
     <% } %>
 
-    <form action="/login" method="POST">
+    <!-- Role Selector -->
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="switchRole('user', this)">
+        Student / Teacher
+      </button>
+      <button class="role-tab" onclick="switchRole('admin', this)">
+        Admin
+      </button>
+    </div>
+
+    <!-- User Login Form -->
+    <form id="user-form" action="/login" method="POST">
       <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" name="email" placeholder="you@example.com" required />
+        <label>Email</label>
+        <input type="email" name="email" required placeholder="your@email.com">
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" name="password" placeholder="••••••••" required />
+        <input type="password" name="password" required placeholder="••••••••">
       </div>
-      <button type="submit" class="btn btn-primary btn-full">Login</button>
+      <button type="submit" class="btn btn-primary btn-full"
+              style="color:#fff !important;">Login</button>
     </form>
 
-    <p class="auth-footer">Don't have an account? <a href="/register">Register here</a></p>
-    <p class="auth-footer">University login? <a href="/university/login">Click here</a></p>
+    <!-- Admin Login Form -->
+    <form id="admin-form" action="/admin/login" method="POST" style="display:none;">
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="email" name="email" required placeholder="admin@acadex.com">
+      </div>
+      <div class="form-group">
+        <label>Admin Password</label>
+        <input type="password" name="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full"
+              style="color:#fff !important; background:#7c3aed;">Admin Login</button>
+    </form>
+
+    <p class="auth-footer">
+      Don't have an account? <a href="/register">Register</a>
+    </p>
   </div>
 </div>
+
+<script>
+function switchRole(role, btn) {
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('user-form').style.display  = role === 'user'  ? 'block' : 'none';
+  document.getElementById('admin-form').style.display = role === 'admin' ? 'block' : 'none';
+}
+</script>
 
 <%- include('partials/footer') %>

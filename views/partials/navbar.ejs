@@ -1,11 +1,85 @@
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="nav-logo">📚 NoteShare</a>
+    <a href="/" class="nav-logo">
+      <i data-lucide="book-open"></i>
+      NoteShare
+    </a>
+
     <div class="nav-links">
-      <a href="/notes/browse">Browse Notes</a>
-      <a href="/login">Student Login</a>
-      <a href="/register">Register</a>
-      <a href="/university/login">University Login</a>
+
+      <% if (locals.currentAdmin) { %>
+  <a href="/notes/browse">Browse</a>
+  <a href="/admin/dashboard">
+    <i data-lucide="shield"></i> Admin Panel
+  </a>
+  <a href="/contact">
+  <i data-lucide="mail"></i> Contact
+</a>
+  <a href="/admin/logout" class="nav-logout">
+    <i data-lucide="log-out"></i> Logout
+  </a>
+
+      <% } else if (locals.currentUniversity) { %>
+        <a href="/notes/browse">
+          <i data-lucide="layout-grid"></i> Browse
+        </a>
+        <a href="/university/dashboard">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="/contact">
+  <i data-lucide="mail"></i> Contact
+</a>
+        <a href="/university/logout" class="nav-logout">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+
+      <% } else if (locals.currentUser) { %>
+        <a href="/notes/browse">
+          <i data-lucide="layout-grid"></i> Browse
+        </a>
+        <a href="/notes/upload">
+          <i data-lucide="upload"></i> Upload
+        </a>
+        <a href="/dashboard">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="/contact">
+  <i data-lucide="mail"></i> Contact
+</a>
+        <a href="/profile/<%= currentUser._id %>" class="nav-profile-link">
+          <% if (currentUser.profilePhoto) { %>
+            <img src="<%= currentUser.profilePhoto %>" class="nav-avatar" alt="Profile">
+          <% } else { %>
+            <span class="nav-avatar-placeholder">
+              <%= currentUser.role === 'teacher' ? '👨‍🏫' : '🎓' %>
+            </span>
+          <% } %>
+          <span><%= currentUser.name.split(' ')[0] %></span>
+        </a>
+        
+        <a href="/logout" class="nav-logout">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+
+      <% } else { %>
+        <a href="/notes/browse">
+          <i data-lucide="layout-grid"></i> Browse
+        </a>
+        <a href="/login">
+          <i data-lucide="log-in"></i> Login
+        </a>
+        <a href="/register">
+          <i data-lucide="user-plus"></i> Register
+        </a>
+        <a href="/contact">
+  <i data-lucide="mail"></i> Contact
+</a>
+        <a href="/university/login">
+          <i data-lucide="building-2"></i> University
+        </a>
+
+      <% } %>
+
     </div>
   </div>
 </nav>

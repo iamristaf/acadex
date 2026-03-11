@@ -3,54 +3,93 @@
 
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Student Registration</h2>
-    <p class="auth-sub">Create your account to start sharing notes.</p>
+    <h2>Create Account</h2>
 
     <% if (error) { %>
       <div class="alert alert-error"><%= error %></div>
     <% } %>
 
     <form action="/register" method="POST">
+
+      <!-- Role Selector -->
+      <div class="role-selector">
+        <label class="role-option" id="role-student">
+          <input type="radio" name="role" value="student" checked onchange="toggleRole(this.value)">
+          <span class="role-icon">🎓</span>
+          <span class="role-label">Student</span>
+        </label>
+        <label class="role-option" id="role-teacher">
+          <input type="radio" name="role" value="teacher" onchange="toggleRole(this.value)">
+          <span class="role-icon">👨‍🏫</span>
+          <span class="role-label">Teacher</span>
+        </label>
+      </div>
+
       <div class="form-group">
         <label>Full Name</label>
-        <input type="text" name="name" placeholder="Your full name" required />
+        <input type="text" name="name" required placeholder="Your full name">
       </div>
+
       <div class="form-group">
         <label>Email Address</label>
-        <input type="email" name="email" placeholder="you@example.com" required />
+        <input type="email" name="email" required placeholder="you@example.com">
       </div>
+
       <div class="form-group">
         <label>Password</label>
-        <input type="password" name="password" placeholder="Min 6 characters" required />
+        <input type="password" name="password" required placeholder="Min 6 characters">
       </div>
 
+      <!-- Teacher-only fields -->
+      <div id="teacher-fields" style="display:none;">
+        <div class="form-group">
+          <label>Employee ID</label>
+          <input type="text" name="employeeId" placeholder="Your college employee ID">
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" name="department" placeholder="e.g. Computer Science">
+        </div>
+      </div>
+
+      <!-- Student-only: independent toggle -->
+      <div id="student-fields">
+        <div class="form-group checkbox-group">
+          <input type="checkbox" name="isIndependent" id="isIndependent"
+                 onchange="toggleIndependent(this.checked)">
+          <label for="isIndependent">I am an Independent Student (no university)</label>
+        </div>
+      </div>
+
+      <!-- University selector -->
       <div class="form-group" id="uni-select">
-        <label>Select Your University</label>
+        <label>Select University</label>
         <select name="universityId">
           <option value="">-- Select University --</option>
-          <% universities.forEach(uni => { %>
-            <option value="<%= uni._id %>"><%= uni.name %>, <%= uni.city %></option>
+          <% universities.forEach(u => { %>
+            <option value="<%= u._id %>"><%= u.name %>, <%= u.city %></option>
           <% }) %>
         </select>
-      </div>
-
-      <div class="form-group checkbox-group">
-        <input type="checkbox" name="isIndependent" id="indCheck" onchange="toggleUni(this)" />
-        <label for="indCheck">My university is not registered (Independent Student)</label>
       </div>
 
       <button type="submit" class="btn btn-primary btn-full">Create Account</button>
     </form>
 
-    <p class="auth-footer">Already have an account? <a href="/login">Login here</a></p>
+    <p class="auth-link">Already have an account? <a href="/login">Login here</a></p>
   </div>
 </div>
 
 <script>
-  function toggleUni(checkbox) {
-    const uniSelect = document.getElementById('uni-select');
-    uniSelect.style.display = checkbox.checked ? 'none' : 'block';
+function toggleRole(role) {
+  document.getElementById('teacher-fields').style.display = role === 'teacher' ? 'block' : 'none';
+  document.getElementById('student-fields').style.display = role === 'student' ? 'block' : 'none';
+  if (role === 'teacher') {
+    document.getElementById('uni-select').style.display = 'block';
   }
+}
+function toggleIndependent(checked) {
+  document.getElementById('uni-select').style.display = checked ? 'none' : 'block';
+}
 </script>
 
 <%- include('partials/footer') %>

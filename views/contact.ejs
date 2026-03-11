@@ -1,0 +1,95 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+  <div class="auth-card wide-card">
+
+    <h2>📬 Contact Us</h2>
+    <p class="auth-sub">Found a bug, glitch, or have a suggestion? We'd love to hear from you.</p>
+
+    <% if (locals.success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <% if (locals.error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/contact" method="POST">
+
+      <!-- Name -->
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="name" required
+               placeholder="Your full name"
+               value="<%= locals.currentUser ? currentUser.name : '' %>">
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" name="email" required
+               placeholder="your@email.com"
+               value="<%= locals.currentUser ? currentUser.email : '' %>">
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category" required>
+          <option value="">Select a category</option>
+          <option value="Bug / Glitch">🐛 Bug / Glitch</option>
+          <option value="Note Issue">📄 Note Issue</option>
+          <option value="Account Issue">👤 Account Issue</option>
+          <option value="Password Issue">🔑 Password Issue</option>
+          <option value="Recommendation">💡 Recommendation</option>
+          <option value="Abuse / Report">🚨 Abuse / Report</option>
+          <option value="Other">💬 Other</option>
+        </select>
+      </div>
+
+      <!-- Subject -->
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" name="subject" required
+               placeholder="Brief description of your issue">
+      </div>
+
+      <!-- Message -->
+      <div class="form-group">
+        <label>Message</label>
+        <textarea name="message" required rows="6"
+                  placeholder="Describe your issue or suggestion in detail..."
+                  style="width:100%; padding:12px; border:1.5px solid #e2e8f0;
+                         border-radius:10px; font-size:14px; resize:vertical;
+                         font-family:inherit; outline:none; transition:border 0.2s;"
+                  onfocus="this.style.borderColor='#4f46e5'"
+                  onblur="this.style.borderColor='#e2e8f0'"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full"
+              style="color:#fff !important;">
+        Send Message
+      </button>
+
+    </form>
+
+    <!-- Info cards -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px;">
+      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px;
+                  padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:6px;">⚡</div>
+        <p style="font-size:13px; font-weight:600; color:#0369a1; margin:0;">Quick Response</p>
+        <p style="font-size:12px; color:#64748b; margin:4px 0 0;">We usually reply within 24 hours</p>
+      </div>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;
+                  padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:6px;">🔒</div>
+        <p style="font-size:13px; font-weight:600; color:#16a34a; margin:0;">Private & Secure</p>
+        <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Your info is never shared</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,96 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+  <div class="auth-card wide-card">
+
+    <h2>✏️ Edit Profile</h2>
+    <p class="auth-sub">Update your name and profile photo</p>
+
+    <% if (locals.error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <% if (locals.success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <form action="/edit-profile" method="POST" enctype="multipart/form-data">
+
+      <!-- Current photo preview -->
+      <div style="text-align:center; margin-bottom:24px;">
+        <% if (user.profilePhoto) { %>
+          <img src="<%= user.profilePhoto %>" alt="Profile Photo"
+               style="width:100px; height:100px; border-radius:50%; object-fit:cover;
+                      border:3px solid #4f46e5; margin-bottom:10px;">
+        <% } else { %>
+          <div style="width:100px; height:100px; border-radius:50%; background:#ede9fe;
+                      display:flex; align-items:center; justify-content:center;
+                      font-size:40px; margin:0 auto 10px;">
+            <%= user.role === 'teacher' ? '👨‍🏫' : '🎓' %>
+          </div>
+        <% } %>
+        <p style="font-size:13px; color:#64748b;">Current photo</p>
+      </div>
+
+      <!-- Name -->
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" value="<%= user.name %>" required
+               placeholder="Your full name">
+      </div>
+
+      <!-- Profile Photo -->
+      <div class="form-group">
+        <label>Profile Photo</label>
+        <div class="photo-upload-box" onclick="document.getElementById('photoInput').click()">
+          <span style="font-size:28px;">📷</span>
+          <p id="photo-label" style="margin:6px 0 0; font-size:14px; color:#64748b;">
+            Click to select a photo (JPG, PNG — max 5MB)
+          </p>
+        </div>
+        <input type="file" name="photo" id="photoInput" accept="image/*"
+               style="display:none" onchange="previewPhoto(this)">
+        <!-- Preview -->
+        <div id="photo-preview" style="display:none; text-align:center; margin-top:12px;">
+          <img id="preview-img" src="" alt="Preview"
+               style="width:80px; height:80px; border-radius:50%; object-fit:cover;
+                      border:3px solid #4f46e5;">
+          <p style="font-size:12px; color:#64748b; margin-top:6px;">New photo preview</p>
+        </div>
+      </div>
+
+      <!-- Teacher extra fields (read only info) -->
+      <% if (user.role === 'teacher') { %>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" name="department" value="<%= user.department || '' %>"
+                 placeholder="e.g. Computer Science">
+        </div>
+      <% } %>
+
+      <button type="submit" class="btn btn-primary btn-full" style="color:#fff !important;">
+        Save Changes
+      </button>
+
+      <a href="/dashboard" style="display:block; text-align:center; margin-top:12px;
+         color:#64748b; font-size:14px;">Cancel</a>
+
+    </form>
+  </div>
+</div>
+
+<script>
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('photo-preview').style.display = 'block';
+      document.getElementById('photo-label').textContent = input.files[0].name;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+
+<%- include('partials/footer') %>

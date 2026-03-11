@@ -1,0 +1,287 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="dashboard-container">
+
+  <div class="dashboard-header">
+    <div>
+      <h1>🛡️ Admin Dashboard</h1>
+      <p>Platform Admin — <%= admin.name %></p>
+    </div>
+    <a href="/admin/logout" class="btn btn-outline btn-sm"
+       style="color:#ef4444; border-color:#ef4444;">Logout</a>
+  </div>
+
+  
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num"><%= stats.totalUsers %></div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><%= stats.totalNotes %></div>
+      <div class="stat-label">Total Notes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num"><%= stats.bannedUsers %></div>
+      <div class="stat-label">Banned Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">
+        <%= students.filter(s => s.isDualVerified).length %>
+      </div>
+      <div class="stat-label">Dual Verified</div>
+    </div>
+  </div>
+  <div class="stat-card">
+  <div class="stat-num" style="color:<%= stats.flaggedCount > 0 ? '#dc2626' : '#16a34a' %>">
+    <%= stats.flaggedCount %>
+  </div>
+  <div class="stat-label">Flagged Duplicates</div>
+</div>
+
+
+  <!-- Flagged Duplicate Notes -->
+<% if (flaggedNotes && flaggedNotes.length > 0) { %>
+<div class="section">
+  <h2 style="color:#dc2626;">⚠️ Flagged Duplicate Notes (<%= flaggedNotes.length %>)</h2>
+  <div class="notes-grid">
+    <% flaggedNotes.forEach(note => { %>
+      <div class="note-card flagged-card">
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <span class="badge badge-<%= note.type.toLowerCase() %>"><%= note.type %></span>
+          <span class="badge-restricted" style="background:#fee2e2; color:#dc2626; border-color:#dc2626;">
+            ⚠️ <%= note.duplicateSimilarity %>% Match
+          </span>
+        </div>
+        <h3 class="note-title"><%= note.title %></h3>
+        <p class="note-meta"><%= note.subject %> • Sem <%= note.semester %></p>
+        <p class="note-meta">
+          👤 <%= note.uploader ? note.uploader.name : 'Unknown' %>
+          <% if (!note.uploader || note.uploader.isIndependent) { %>
+            <span class="badge-type">Independent</span>
+          <% } %>
+        </p>
+        <% if (note.duplicateOf) { %>
+          <p class="note-meta" style="color:#dc2626; font-size:12px;">
+            🔗 Matches:
+            <a href="/notes/view/<%= note.duplicateOf._id %>" target="_blank">
+              <%= note.duplicateOf.title %>
+            </a>
+          </p>
+        <% } %>
+        <p class="note-views" style="font-size:12px; color:#64748b;">
+          Flagged: <%= note.flaggedAt ? note.flaggedAt.toDateString() : '—' %>
+        </p>
+        <div class="note-actions" style="flex-wrap:wrap; gap:6px;">
+          <a href="/notes/view/<%= note._id %>" class="btn btn-primary btn-sm"
+             style="color:#fff !important;">View</a>
+          <form action="/admin/flag-resolve/<%= note._id %>" method="POST" style="display:inline"
+                title="Mark as not a duplicate — keep the note">
+            <button class="btn btn-sm"
+                    style="background:#dcfce7; color:#16a34a; border:none; cursor:pointer;
+                           padding:6px 10px; border-radius:6px; font-size:12px; font-weight:600;">
+              ✅ Not Duplicate
+            </button>
+          </form>
+          <form action="/admin/flag-delete/<%= note._id %>" method="POST" style="display:inline"
+                onsubmit="return confirm('Delete this duplicate note?')">
+            <button class="btn btn-danger btn-sm">🗑️ Delete</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+
+
+  <!-- Students -->
+  <div class="section">
+    <h2>🎓 All Students (<%= students.length %>)</h2>
+    <table class="mgmt-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>University</th>
+          <th>Type</th>
+          <th>Badges</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% students.forEach(s => { %>
+          <tr class="<%= s.isBanned ? 'row-banned' : '' %>">
+            <td style="display:flex; align-items:center; gap:8px;">
+              <% if (s.profilePhoto) { %>
+                <img src="<%= s.profilePhoto %>"
+                     style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+              <% } else { %>
+                <span style="font-size:20px;">🎓</span>
+              <% } %>
+              <%= s.name %>
+            </td>
+            <td><%= s.email %></td>
+            <td><%= s.university ? s.university.name : '—' %></td>
+            <td>
+              <span class="badge-type">
+                <%= s.isIndependent ? 'Independent' : 'University' %>
+              </span>
+            </td>
+            <td style="display:flex; gap:4px; align-items:center;">
+              <% if (s.isDualVerified) { %>
+                <%- include('../partials/verified-badge', { role: 'dual' }) %>
+              <% } else { %>
+                <% if (s.isVerified) { %>
+                  <%- include('../partials/verified-badge', { role: 'student' }) %>
+                <% } %>
+                <% if (s.isPurpleVerified) { %>
+                  <%- include('../partials/verified-badge', { role: 'purple' }) %>
+                <% } %>
+              <% } %>
+            </td>
+            <td>
+              <% if (s.isBanned) { %>
+                <span class="status-badge banned">Banned</span>
+              <% } else if (s.isDualVerified) { %>
+                <span class="status-badge dual">Dual Verified</span>
+              <% } else if (s.isPurpleVerified) { %>
+                <span class="status-badge purple">Purple</span>
+              <% } else if (s.isVerified) { %>
+                <span class="status-badge verified">Verified</span>
+              <% } else { %>
+                <span class="status-badge pending">Pending</span>
+              <% } %>
+            </td>
+            <td class="action-btns">
+              <% if (!s.isBanned) { %>
+                <% if (!s.isVerified) { %>
+                  <form action="/admin/verify/<%= s._id %>" method="POST" style="display:inline">
+                    <button class="btn-verify">Blue</button>
+                  </form>
+                <% } %>
+                <% if (!s.isPurpleVerified) { %>
+                  <form action="/admin/purple-verify/<%= s._id %>" method="POST" style="display:inline">
+                    <button class="btn-purple">Purple</button>
+                  </form>
+                <% } %>
+                <% if (!s.isDualVerified) { %>
+                  <form action="/admin/dual-verify/<%= s._id %>" method="POST" style="display:inline">
+                    <button class="btn-dual">Dual ✦</button>
+                  </form>
+                <% } %>
+                <% if (s.isVerified || s.isPurpleVerified || s.isDualVerified) { %>
+                  <form action="/admin/unverify/<%= s._id %>" method="POST" style="display:inline"
+                        onsubmit="return confirm('Remove all verification from this user?')">
+                    <button class="btn-warn">Unverify</button>
+                  </form>
+                <% } %>
+                <form action="/admin/ban/<%= s._id %>" method="POST" style="display:inline"
+                      onsubmit="return handleBan(this)">
+                  <input type="hidden" name="reason" value="Banned by platform admin">
+                  <button class="btn-danger">Ban</button>
+                </form>
+              <% } else { %>
+                <form action="/admin/unban/<%= s._id %>" method="POST" style="display:inline">
+                  <button class="btn-verify">Unban</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Notes -->
+  <div class="section">
+    <h2>📄 All Notes (<%= notes.length %>)</h2>
+    <div class="notes-grid">
+      <% notes.forEach(note => { %>
+        <div class="note-card">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <span class="badge badge-<%= note.type.toLowerCase() %>"><%= note.type %></span>
+            <% if (note.isRestricted) { %>
+              <span class="badge-restricted">🔒 University Only</span>
+            <% } %>
+          </div>
+          <h3 class="note-title"><%= note.title %></h3>
+          <p class="note-meta"><%= note.subject %> • Sem <%= note.semester %></p>
+          <p class="note-meta">
+            👤 <%= note.uploader ? note.uploader.name : 'Unknown' %>
+            <% if (!note.uploader || note.uploader.isIndependent) { %>
+              <span class="badge-type">Independent</span>
+            <% } %>
+          </p>
+          <p class="note-uni">🏫 <%= note.university ? note.university.name : 'Independent' %></p>
+          <p class="note-views">👁 <%= note.views %> views</p>
+          <div class="note-actions">
+            <a href="/notes/view/<%= note._id %>" class="btn btn-primary btn-sm"
+               style="color:#fff !important;">View</a>
+            <button class="btn btn-danger btn-sm"
+                    onclick="showDeleteModal('<%= note._id %>',
+                    '<%= note.title.replace(/'/g, "\\'") %>')">
+              Remove
+            </button>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+</div>
+
+<!-- Delete Modal -->
+<div id="delete-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>🗑️ Remove Note</h3>
+    <p id="modal-note-name" style="color:#64748b; margin:8px 0 16px; font-size:14px;"></p>
+    <div class="form-group">
+      <label>Reason <span style="color:#dc2626">*</span></label>
+      <input type="text" id="delete-reason" required
+             placeholder="e.g. Spam, irrelevant content...">
+    </div>
+    <form id="delete-form" method="POST">
+      <input type="hidden" name="reason" id="delete-reason-hidden">
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button type="submit" class="btn btn-danger btn-full"
+                onclick="document.getElementById('delete-reason-hidden').value =
+                         document.getElementById('delete-reason').value">
+          Confirm Remove
+        </button>
+        <button type="button" class="btn btn-outline btn-full"
+                onclick="closeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showDeleteModal(noteId, noteTitle) {
+  document.getElementById('modal-note-name').textContent = '"' + noteTitle + '"';
+  document.getElementById('delete-form').action = '/admin/delete-note/' + noteId;
+  document.getElementById('delete-reason').value = '';
+  document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+}
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+function handleBan(form) {
+  const reason = prompt('Ban reason (optional):');
+  if (reason !== null) {
+    form.querySelector('[name="reason"]').value = reason || 'Banned by platform admin';
+    return true;
+  }
+  return false;
+}
+</script>
+
+<%- include('../partials/footer') %>

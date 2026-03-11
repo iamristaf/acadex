@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div class="auth-container">
+  <div class="auth-card" style="text-align:center; max-width:500px;">
+
+    <div style="font-size:64px; margin-bottom:16px;">🔒</div>
+
+    <h2 style="margin-bottom:10px;">Restricted Note</h2>
+    <p style="color:#64748b; margin-bottom:20px;"><%= message %></p>
+
+    <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:10px; padding:14px; margin-bottom:24px;">
+      <p style="font-size:14px; color:#92400e;">
+        <strong>To access this note you must:</strong><br><br>
+        ✅ Be registered under <strong><%= note.university ? note.university.name : 'this university' %></strong><br>
+        ✅ Be <strong>verified</strong> by your university admin
+      </p>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <a href="/notes/browse" class="btn btn-outline">← Back to Browse</a>
+      <% if (!locals.currentUser && !locals.currentUniversity) { %>
+        <a href="/login" class="btn btn-primary">Login</a>
+      <% } %>
+    </div>
+
+  </div>
+</div>
+
+<%- include('partials/footer') %>

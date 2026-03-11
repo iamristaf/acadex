@@ -29,6 +29,46 @@
   </div>
 </div>
 
+<!-- Note info bar -->
+<div class="viewer-info">
+  <h2><%= note.title %></h2>
+  <p><%= note.subject %> • Sem <%= note.semester %> • <%= note.type %></p>
+  <p>
+    🏫 <%= note.university ? note.university.name : 'Independent' %>
+    &nbsp;|&nbsp;
+    👤 <a href="/profile/<%= note.uploader._id %>"><%= note.uploader.name %></a>
+    <% if (note.uploader.isVerified) { %>
+      <% if (note.uploader.role === 'teacher') { %>
+        <span class="badge-verified gold">★ Verified Teacher</span>
+      <% } else { %>
+        <span class="badge-verified blue">✓ Verified</span>
+      <% } %>
+    <% } %>
+    &nbsp;|&nbsp; 👁 <%= note.views %> views
+  </p>
+
+  <!-- Note Rating Form -->
+  <% if (locals.user) { %>
+    <div class="rating-form">
+      <strong>Rate this note:</strong>
+      <form action="/notes/rate/<%= note._id %>" method="POST" class="star-form">
+        <% for(let i = 1; i <= 5; i++) { %>
+          <button type="submit" name="stars" value="<%= i %>"
+                  class="star-btn <%= i <= Math.round(note.ratingCount > 0 ? note.totalRating/note.ratingCount : 0) ? 'active' : '' %>">
+            ★
+          </button>
+        <% } %>
+        <span class="rating-avg">
+          <%= note.ratingCount > 0 ? (note.totalRating/note.ratingCount).toFixed(1) : 'No ratings yet' %>
+          (<%= note.ratingCount %> ratings)
+        </span>
+      </form>
+    </div>
+  <% } %>
+</div>
+
+<!-- PDF Canvas (your existing PDF.js code stays here) -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
